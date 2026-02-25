@@ -20,11 +20,9 @@ Vec3f rot_get_right(float yaw) {
 }
 
 Vec3f rot_get_up(float pitch, float yaw) {
-    float x = std::sinf(pitch) * std::sinf(yaw);
-    float y = std::cosf(pitch);
-    float z = std::sinf(pitch) * std::cosf(yaw);
-
-    return {x, y, z};
+    Vec3f forward = rot_get_forward(pitch, yaw);
+    Vec3f right = rot_get_right(yaw);
+    return Vec3f::cross(forward, right);
 }
 
 Vec3f rot_get_angles(Vec3f forward) {

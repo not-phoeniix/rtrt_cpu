@@ -9,7 +9,6 @@ Camera::Camera(const Vec3f& position, float aspect_ratio, float focal_length, fl
     rotation({0, 0, 0}),
     focal_length(focal_length),
     viewport_height(viewport_height) {
-    // use helper function so fovx is also set
     set_aspect_ratio(aspect_ratio);
 }
 

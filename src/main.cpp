@@ -115,6 +115,8 @@ int main() {
                          camera.get_forward() * camera.get_focal_length() -
                          (viewport_right / 2.0f) -
                          (viewport_down / 2.0f);
+        top_left += (pixel_right * 0.5f);
+        top_left += (pixel_down * 0.5f);
 
         for (uint32_t y = 0; y < HEIGHT; y++) {
             for (uint32_t x = 0; x < WIDTH; x++) {
