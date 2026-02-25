@@ -11,7 +11,7 @@ Vec3f rot_get_forward(float pitch, float yaw) {
     return {x, y, z};
 }
 
-Vec3f rot_get_right(float pitch, float yaw) {
+Vec3f rot_get_right(float yaw) {
     float x = std::cosf(yaw);
     float y = 0.0f;
     float z = -std::sinf(yaw);
