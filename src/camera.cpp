@@ -2,13 +2,16 @@
 
 #include <float.h>
 #include <cmath>
+#include "rot_helpers.h"
 
-Camera::Camera(const Vec3f& position, float aspect_ratio, float fov, float near_plane)
+Camera::Camera(const Vec3f& position, float aspect_ratio, float fovy, float near_plane)
   : position(position),
     rotation({0, 0, 0}),
-    aspect_ratio(aspect_ratio),
-    fov(fov),
-    near_plane(near_plane) { }
+    fovy(fovy),
+    near_plane(near_plane) {
+    // use helper function so fovx is also set
+    set_aspect_ratio(aspect_ratio);
+}
 
 void Camera::LookAt(const Vec3f& p) {
     Vec3f delta = p - position;
@@ -16,34 +19,55 @@ void Camera::LookAt(const Vec3f& p) {
         delta = Vec3f::normalize(delta);
     }
 
-    float yaw = std::atan2f(delta.x, delta.z);
-    float pitch = std::asin(-delta.y);
-
-    rotation = {pitch, yaw, 0};
+    rotation = rot_get_angles(delta);
 }
 
 Vec3f Camera::get_forward() const {
-    return get_directional(rotation.x, rotation.y);
+    return rot_get_forward(rotation.x, rotation.y);
 }
-
 Vec3f Camera::get_right() const {
-    return get_directional(rotation.x, rotation.y + M_PI_2);
+    return rot_get_right(rotation.x, rotation.y);
 }
-
 Vec3f Camera::get_up() const {
-    return get_directional(rotation.x + M_PI_2, rotation.y);
+    return rot_get_up(rotation.x, rotation.y);
 }
 
-inline Vec3f Camera::get_directional(float pitch, float yaw) {
-    // https://stackoverflow.com/questions/1568568/how-to-convert-euler-angles-to-directional-vector
-    // if x is forward and z is up,,,
-    // x = cos(yaw)*cos(pitch)
-    // y = sin(yaw)*cos(pitch)
-    // z = sin(pitch)
+void Camera::set_aspect_ratio(float aspect_ratio) {
+    this->aspect_ratio = aspect_ratio;
+    // https://en.wikipedia.org/wiki/Field_of_view_in_video_games
+    fovx = 2.0f * std::atanf(aspect_ratio * std::tanf(fovy / 2.0f));
+}
 
-    float z = std::cosf(yaw) * std::cosf(pitch);
-    float x = std::sinf(yaw) * std::cosf(pitch);
-    float y = std::sinf(pitch);
+Vec3f Camera::get_viewport_tl_dir() const {
+    return rot_get_forward(
+        rotation.x + (fovy / 2.0f),
+        rotation.y - (fovx / 2.0f)
+    );
+}
 
-    return {x, y, z};
+Vec3f Camera::get_viewport_br_dir() const {
+    return rot_get_forward(
+        rotation.x - (fovy / 2.0f),
+        rotation.y + (fovx / 2.0f)
+    );
+}
+
+float Camera::get_viewport_width() const {
+    Vec3f tl_dir = rot_get_forward(fovy / 2.0f, -fovx / 2.0f);
+    Vec3f br_dir = rot_get_forward(-fovy / 2.0f, fovx / 2.0f);
+
+    Vec3f tl_plane = tl_dir * near_plane;
+    Vec3f br_plane = br_dir * near_plane;
+
+    return br_plane.x - tl_plane.x;
+}
+
+float Camera::get_viewport_height() const {
+    Vec3f tl_dir = rot_get_forward(fovy / 2.0f, -fovx / 2.0f);
+    Vec3f br_dir = rot_get_forward(-fovy / 2.0f, fovx / 2.0f);
+
+    Vec3f tl_plane = tl_dir * near_plane;
+    Vec3f br_plane = br_dir * near_plane;
+
+    return tl_plane.y - br_plane.y;
 }
