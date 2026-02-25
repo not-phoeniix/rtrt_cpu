@@ -16,6 +16,12 @@ struct Vec2 {
         return *this;
     }
 
+    Vec2<T>& operator-=(const Vec2<T>& other) {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
     Vec2<T>& operator*=(const Vec2<T>& other) {
         x *= other.x;
         y *= other.y;
