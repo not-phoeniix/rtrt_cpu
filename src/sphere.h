@@ -13,7 +13,8 @@ class Sphere {
    public:
     Sphere(const Vec3f& center, float radius, const Vec3f& color, float roughness);
 
-    bool Intersects(const Ray& ray) const;
+    float CheckHit(const Ray& ray) const;
 
     const Vec3f& get_color() const { return color; }
+    const Vec3f& get_center() const { return center; }
 };

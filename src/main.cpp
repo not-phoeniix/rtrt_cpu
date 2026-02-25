@@ -47,18 +47,6 @@ static std::vector<Sphere> spheres = {
     // )
 };
 
-static Vec3f shade(const Ray& ray) {
-    for (const Sphere& s : spheres) {
-        if (s.Intersects(ray)) {
-            return s.get_color();
-        }
-    }
-
-    Vec3f dir_norm = Vec3f::normalize(ray.get_direction());
-    float a = 0.5f * (dir_norm.y + 1.0f);
-    return lerp({1.0f, 1.0f, 1.0f}, {0.5f, 0.7f, 1.0f}, a);
-}
-
 static void update_camera(Camera& camera) {
     Vec3f pos_offset = {0, 0, 0};
 
@@ -85,6 +73,24 @@ static void update_camera(Camera& camera) {
 
     camera.MoveBy(pos_offset * (float)Thirteen::GetDeltaTime());
     camera.RotateBy(rot_offset * (float)Thirteen::GetDeltaTime());
+}
+
+static Vec3f shade(const Ray& ray) {
+    for (const Sphere& s : spheres) {
+        float x = s.CheckHit(ray);
+        if (x > 0.0f) {
+            Vec3f normal = Vec3f::normalize(ray.get_at(x) - s.get_center());
+            return normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
+        }
+
+        // if (s.Intersects(ray)) {
+        // return s.get_color();
+        // }
+    }
+
+    Vec3f dir_norm = Vec3f::normalize(ray.get_direction());
+    float a = 0.5f * (dir_norm.y + 1.0f);
+    return lerp({1.0f, 1.0f, 1.0f}, {0.5f, 0.7f, 1.0f}, a);
 }
 
 int main() {
