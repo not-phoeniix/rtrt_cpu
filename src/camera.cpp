@@ -22,11 +22,19 @@ void Camera::LookAt(const Vec3f& p) {
     rotation = rot_get_angles(delta);
 }
 
+void Camera::MoveBy(const Vec3f& offset) {
+    position += offset;
+}
+
+void Camera::RotateBy(const Vec3f& offset) {
+    rotation += offset;
+}
+
 Vec3f Camera::get_forward() const {
     return rot_get_forward(rotation.x, rotation.y);
 }
 Vec3f Camera::get_right() const {
-    return rot_get_right(rotation.x, rotation.y);
+    return rot_get_right(rotation.y);
 }
 Vec3f Camera::get_up() const {
     return rot_get_up(rotation.x, rotation.y);
