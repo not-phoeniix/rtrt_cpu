@@ -51,6 +51,7 @@ Nikita Lisitsa - Linux/X11+OpenGL implementation
 #ifdef THIRTEEN_PLATFORM_WINDOWS
     #pragma comment(lib, "d3d12.lib")
     #pragma comment(lib, "dxgi.lib")
+    #pragma comment(lib, "user32.lib")
 
     #define DX12VALIDATION() (_DEBUG && false)
 #endif
@@ -89,6 +90,16 @@ namespace Thirteen
     using uint8 = unsigned char;
     using uint32 = unsigned int;
 
+#if defined(THIRTEEN_PLATFORM_WINDOWS)
+    using NativeWindowHandle = HWND;
+#elif defined(THIRTEEN_PLATFORM_WEB)
+    using NativeWindowHandle = void*;
+#elif defined(THIRTEEN_PLATFORM_MACOS)
+    using NativeWindowHandle = void*;
+#elif defined(THIRTEEN_PLATFORM_LINUX)
+    using NativeWindowHandle = int;
+#endif
+
     // ========== Function Prototypes ==========
 
     // Initializes window and DX12. Returns a pointer to the pixel buffer on success, or nullptr on failure.
@@ -120,6 +131,9 @@ namespace Thirteen
 
     // Returns the current height of the rendering surface in pixels.
     [[nodiscard]] uint32 GetHeight();
+
+    // Returns the platform-specific window handle.
+    [[nodiscard]] NativeWindowHandle GetWindowHandle();
 
     // Sets the size of the rendering surface. Recreates internal buffers. Returns the new pixel buffer pointer on success, or nullptr on failure. The returned pointer may differ from the one returned by Init().
     [[nodiscard]] uint8* SetSize(uint32 width, uint32 height);
@@ -190,8 +204,6 @@ namespace Thirteen
         uint8* Pixels = nullptr;
 
         #if defined(THIRTEEN_PLATFORM_WINDOWS)
-
-        using NativeWindowHandle = HWND;
 
         struct PlatformWin32
         {
@@ -646,7 +658,7 @@ namespace Thirteen
             }
         };
         #elif defined(__EMSCRIPTEN__)
-        using NativeWindowHandle = void*;
+        
         struct PlatformWeb
         {
             static constexpr const char* c_canvasSelector = "#canvas";
@@ -1200,7 +1212,7 @@ namespace Thirteen
             }
         };
         #elif defined(THIRTEEN_PLATFORM_MACOS)
-        using NativeWindowHandle = void*;
+        
         extern "C" void* MTLCreateSystemDefaultDevice(void);
 
         using NSUInteger = unsigned long;
@@ -1571,8 +1583,6 @@ namespace Thirteen
 
         #elif defined(THIRTEEN_PLATFORM_LINUX)
 
-        using NativeWindowHandle = int;
-
         struct PlatformLinuxX11GL
         {
             void * x11Library = nullptr;
@@ -1588,6 +1598,7 @@ namespace Thirteen
             int (*XStoreName)(Display*, Window, const char*) = nullptr;
             int (*XPending)(Display*) = nullptr;
             int (*XNextEvent)(Display*, XEvent*) = nullptr;
+            int (*XLookupString)(XKeyEvent *, char *, int, KeySym *, XComposeStatus *);
             int (*XDestroyWindow)(Display*, Window) = nullptr;
             int (*XCloseDisplay)(Display*) = nullptr;
             XSizeHints* (*XAllocSizeHints)() = nullptr;
@@ -1655,6 +1666,10 @@ namespace Thirteen
 
                 XNextEvent = (int(*)(Display*,XEvent*)) dlsym(x11Library, "XNextEvent");
                 if (!XNextEvent)
+                    return false;
+
+                XLookupString = (int(*)(XKeyEvent *, char *, int, KeySym *, XComposeStatus *)) dlsym(x11Library, "XLookupString");
+                if (!XLookupString)
                     return false;
 
                 XDestroyWindow = (int(*)(Display*,Window)) dlsym(x11Library, "XDestroyWindow");
@@ -1833,6 +1848,20 @@ namespace Thirteen
                 }
             }
 
+            int remapKeyEvent(XKeyEvent &event)
+            {
+                KeySym keysym = 0;
+                char buf[8] = {};
+                int rc = XLookupString(&event, buf, sizeof(buf), &keysym, NULL);
+
+                // rc == number of characters wruitten to `buf`.  We expect
+                // exactly 1 for ASCII characters.
+                if (rc != 1)
+                    return -1;
+
+                return buf[0];
+            }
+
             void PumpMessages()
             {
                 XEvent event;
@@ -1841,14 +1870,17 @@ namespace Thirteen
                     XNextEvent(x11Display, &event);
                     switch (event.type)
                     {
-                    // TODO: these are hardware-dependent, need to unify key codes across platforms
                     case KeyPress:
-                        // if (event.xkey.keycode < 256)
-                        //     keys[event.xkey.keycode] = true;
+                        if (int keycode = remapKeyEvent(event.xkey); unsigned(keycode) < 256)
+                        {
+                            keys[keycode] = true;
+                        }
                         break;
                     case KeyRelease:
-                        // if (event.xkey.keycode < 256)
-                        //     keys[event.xkey.keycode] = true;
+                        if (int keycode = remapKeyEvent(event.xkey); unsigned(keycode) < 256)
+                        {
+                            keys[keycode] = false;
+                        }
                         break;
                     case ButtonPress:
                         mouseButtons[remapMouseButton(event.xbutton.button)] = true;
@@ -1861,7 +1893,7 @@ namespace Thirteen
                         mouseY = event.xmotion.y;
                         break;
                     case ClientMessage:
-                        if (event.xclient.data.l[0] == closeWindowAtom)
+                        if ((Atom)event.xclient.data.l[0] == closeWindowAtom)
                             shouldQuit = true;
                         break;
                     }
@@ -2218,6 +2250,11 @@ namespace Thirteen
     uint32 GetHeight()
     {
         return Internal::height;
+    }
+
+    NativeWindowHandle GetWindowHandle()
+    {
+        return Internal::platform->GetWindowHandle();
     }
 
     uint8* SetSize(uint32 width, uint32 height)
