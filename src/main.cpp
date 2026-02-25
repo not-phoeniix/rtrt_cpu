@@ -9,7 +9,7 @@
 #include "sphere.h"
 #include <vector>
 
-constexpr uint32_t WIDTH = 600;
+constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 constexpr float CAM_SPEED = 2.0f;
 constexpr float CAM_LOOK_SPEED = 0.1f;
@@ -98,41 +98,27 @@ int main() {
     Camera camera(
         {0, 0, -5},            // pos
         (float)WIDTH / HEIGHT, // aspect
-        65.0f * M_PI / 180.0f, // fov
-        1.0f                   // near plane
+        1.0f,                  // focal length
+        2.0f                   // viewport height
     );
-
-    std::cout << "aspect: " << camera.get_aspect_ratio() << "\n";
-
-    std::cout << "fovy: " << camera.get_fovy() << " fovx: " << camera.get_fovx() << "\n";
-
-    float viewport_width = camera.get_viewport_width();
-    float viewport_height = camera.get_viewport_height();
-
-    std::cout << "vpw: " << viewport_width << "vph: " << viewport_height << "\n";
-
-    float pixel_width = viewport_width / WIDTH;
-    float pixel_height = viewport_height / HEIGHT;
-
-    std::cout << "w: " << pixel_width << "h: " << pixel_height << "\n";
 
     while (Thirteen::Render() && !Thirteen::GetKey(VK_ESCAPE)) {
         update_camera(camera);
 
-        Vec3f right = camera.get_right();
-        Vec3f down = -camera.get_up();
-        Vec3f right_offset = right * pixel_width;
-        Vec3f down_offset = down * pixel_height;
-
         Vec3f cam_pos = camera.get_position();
 
-        Vec3f top_left = cam_pos + (camera.get_viewport_tl_dir() * camera.get_near_plane());
-        top_left += (right_offset / 2.0f);
-        top_left += (down_offset / 2.0f);
+        Vec3f viewport_right = camera.get_right() * camera.get_viewport_width();
+        Vec3f viewport_down = -camera.get_up() * camera.get_viewport_height();
+        Vec3f pixel_right = viewport_right / (float)WIDTH;
+        Vec3f pixel_down = viewport_down / (float)HEIGHT;
+        Vec3f top_left = cam_pos +
+                         camera.get_forward() * camera.get_focal_length() -
+                         (viewport_right / 2.0f) -
+                         (viewport_down / 2.0f);
 
         for (uint32_t y = 0; y < HEIGHT; y++) {
             for (uint32_t x = 0; x < WIDTH; x++) {
-                Vec3f frag_screen_pos = top_left + (right_offset * (float)x) + (down_offset * (float)y);
+                Vec3f frag_screen_pos = top_left + (pixel_right * (float)x) + (pixel_down * (float)y);
                 Vec3f ray_dir = frag_screen_pos - cam_pos;
 
                 Ray ray(cam_pos, ray_dir);

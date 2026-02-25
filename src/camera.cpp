@@ -4,11 +4,11 @@
 #include <cmath>
 #include "rot_helpers.h"
 
-Camera::Camera(const Vec3f& position, float aspect_ratio, float fovy, float near_plane)
+Camera::Camera(const Vec3f& position, float aspect_ratio, float focal_length, float viewport_height)
   : position(position),
     rotation({0, 0, 0}),
-    fovy(fovy),
-    near_plane(near_plane) {
+    focal_length(focal_length),
+    viewport_height(viewport_height) {
     // use helper function so fovx is also set
     set_aspect_ratio(aspect_ratio);
 }
@@ -42,40 +42,5 @@ Vec3f Camera::get_up() const {
 
 void Camera::set_aspect_ratio(float aspect_ratio) {
     this->aspect_ratio = aspect_ratio;
-    // https://en.wikipedia.org/wiki/Field_of_view_in_video_games
-    fovx = 2.0f * std::atanf(aspect_ratio * std::tanf(fovy / 2.0f));
-}
-
-Vec3f Camera::get_viewport_tl_dir() const {
-    return rot_get_forward(
-        rotation.x + (fovy / 2.0f),
-        rotation.y - (fovx / 2.0f)
-    );
-}
-
-Vec3f Camera::get_viewport_br_dir() const {
-    return rot_get_forward(
-        rotation.x - (fovy / 2.0f),
-        rotation.y + (fovx / 2.0f)
-    );
-}
-
-float Camera::get_viewport_width() const {
-    Vec3f tl_dir = rot_get_forward(fovy / 2.0f, -fovx / 2.0f);
-    Vec3f br_dir = rot_get_forward(-fovy / 2.0f, fovx / 2.0f);
-
-    Vec3f tl_plane = tl_dir * near_plane;
-    Vec3f br_plane = br_dir * near_plane;
-
-    return br_plane.x - tl_plane.x;
-}
-
-float Camera::get_viewport_height() const {
-    Vec3f tl_dir = rot_get_forward(fovy / 2.0f, -fovx / 2.0f);
-    Vec3f br_dir = rot_get_forward(-fovy / 2.0f, fovx / 2.0f);
-
-    Vec3f tl_plane = tl_dir * near_plane;
-    Vec3f br_plane = br_dir * near_plane;
-
-    return tl_plane.y - br_plane.y;
+    viewport_width = viewport_height * aspect_ratio;
 }
