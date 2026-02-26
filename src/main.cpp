@@ -74,6 +74,8 @@ int main() {
         return 1;
     }
 
+    Thirteen::SetApplicationName("!! rtrt_cpu !!");
+
     Camera camera(
         {0, 0, -5},            // pos
         (float)WIDTH / HEIGHT, // aspect
