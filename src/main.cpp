@@ -14,13 +14,13 @@ constexpr uint32_t HEIGHT = 600;
 constexpr float CAM_SPEED = 2.0f;
 constexpr float CAM_LOOK_SPEED = 0.1f;
 
-static float randf_range(float min, float max) {
-    return min + ((max - min) * ((rand() / (float)RAND_MAX)));
-}
+// static float randf_range(float min, float max) {
+//     return min + ((max - min) * ((rand() / (float)RAND_MAX)));
+// }
 
-static float lerp(float a, float b, float x) {
-    return (b * x) + (a * (1.0f - x));
-}
+// static float lerp(float a, float b, float x) {
+//     return (b * x) + (a * (1.0f - x));
+// }
 
 static Vec3f lerp(Vec3f a, Vec3f b, float x) {
     return (b * x) + (a * (1.0f - x));
