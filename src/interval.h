@@ -23,5 +23,5 @@ class Interval {
     static const Interval universe;
 };
 
-const Interval Interval::empty = Interval(+INFINITY_F, -INFINITY_F);
-const Interval Interval::universe = Interval(-INFINITY_F, +INFINITY_F);
+const inline Interval Interval::empty = Interval(+INFINITY_F, -INFINITY_F);
+const inline Interval Interval::universe = Interval(-INFINITY_F, +INFINITY_F);
