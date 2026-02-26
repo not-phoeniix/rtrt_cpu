@@ -5,8 +5,8 @@
 #include "vec2.h"
 #include "camera.h"
 #include "ray.h"
-#include "sphere.h"
-#include "hittable_list.h"
+#include "objects/sphere.h"
+#include "objects/hittable_list.h"
 #include "renderer.h"
 
 constexpr uint32_t WIDTH = 800;

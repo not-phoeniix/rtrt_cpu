@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vec3.h"
-#include "ray.h"
+#include "../vec3.h"
+#include "../ray.h"
 #include "hittable.h"
 
 class Sphere : public Hittable {

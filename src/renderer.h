@@ -3,7 +3,7 @@
 #include "thread_pool.h"
 #include <stdint.h>
 #include "ray.h"
-#include "hittable_list.h"
+#include "objects/hittable_list.h"
 #include "camera.h"
 
 class Renderer {
