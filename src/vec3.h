@@ -32,10 +32,24 @@ struct Vec3 {
         return *this;
     }
 
+    Vec3<T>& operator*=(T scale) {
+        x *= scale;
+        y *= scale;
+        z *= scale;
+        return *this;
+    }
+
     Vec3<T>& operator/=(const Vec3<T>& other) {
         x /= other.x;
         y /= other.y;
         z /= other.z;
+        return *this;
+    }
+
+    Vec3<T>& operator/=(T scale) {
+        x /= scale;
+        y /= scale;
+        z /= scale;
         return *this;
     }
 
