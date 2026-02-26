@@ -14,6 +14,7 @@ class Interval {
 
     bool Contains(float x) const;
     bool Surrounds(float x) const;
+    float Clamp(float x) const;
 
     float get_size() const { return max - min; }
     float get_max() const { return max; }

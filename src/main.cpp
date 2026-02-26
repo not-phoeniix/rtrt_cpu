@@ -8,31 +8,13 @@
 #include "ray.h"
 #include "sphere.h"
 #include "hittable_list.h"
-#include "thread_pool.h"
+#include "renderer.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 constexpr float CAM_SPEED = 2.0f;
 constexpr float CAM_LOOK_SPEED = 0.1f;
-
-static float randf_range(float min, float max) {
-    return min + ((max - min) * ((rand() / (float)RAND_MAX)));
-}
-
-// static float lerp(float a, float b, float x) {
-//     return (b * x) + (a * (1.0f - x));
-// }
-
-static Vec3f lerp(Vec3f a, Vec3f b, float x) {
-    return (b * x) + (a * (1.0f - x));
-}
-
-static HittableList objects({
-    std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.1f, 0.1f, 0.1f}),
-    std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
-    // std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
-    // std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
-});
+constexpr uint32_t SAMPLES_PER_PIXEL = 10;
 
 static void update_camera(Camera& camera) {
     Vec3f pos_offset = {0, 0, 0};
@@ -62,17 +44,6 @@ static void update_camera(Camera& camera) {
     camera.RotateBy(rot_offset * (float)Thirteen::GetDeltaTime());
 }
 
-static Vec3f shade(const Ray& ray) {
-    HitData hit_data;
-    if (objects.Hit(ray, Interval(0, INFINITY_F), &hit_data)) {
-        return hit_data.normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
-    }
-
-    Vec3f dir_norm = Vec3f::normalize(ray.get_direction());
-    float a = 0.5f * (dir_norm.y + 1.0f);
-    return lerp({1.0f, 1.0f, 1.0f}, {0.5f, 0.7f, 1.0f}, a);
-}
-
 int main() {
     srand((unsigned int)time(NULL));
 
@@ -88,59 +59,18 @@ int main() {
         2.0f                   // viewport height
     );
 
-    ThreadPool thread_pool;
+    HittableList objects({
+        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.1f, 0.1f, 0.1f}),
+        std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
+        // std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
+        // std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
+    });
+
+    Renderer renderer(WIDTH, HEIGHT);
 
     while (Thirteen::Render() && !Thirteen::GetKey(VK_ESCAPE)) {
         update_camera(camera);
-
-        Vec3f cam_pos = camera.get_position();
-
-        Vec3f viewport_right = camera.get_right() * camera.get_viewport_width();
-        Vec3f viewport_down = -camera.get_up() * camera.get_viewport_height();
-        Vec3f pixel_right = viewport_right / (float)WIDTH;
-        Vec3f pixel_down = viewport_down / (float)HEIGHT;
-        Vec3f top_left = cam_pos +
-                         camera.get_forward() * camera.get_focal_length() -
-                         (viewport_right / 2.0f) -
-                         (viewport_down / 2.0f);
-        top_left += (pixel_right * 0.5f);
-        top_left += (pixel_down * 0.5f);
-
-        // send shading in grouped-together batches
-        //   if we send them off all scattered then cache misses
-        //   will cause serious performance hits
-
-        uint32_t pixel_index_start = 0;
-        uint32_t pixels_remaining = WIDTH * HEIGHT;
-
-        for (uint32_t i = 0; i < thread_pool.get_thread_count(); i++) {
-            uint32_t count = WIDTH * HEIGHT / thread_pool.get_thread_count();
-            if (count > pixels_remaining) count = pixels_remaining;
-
-            thread_pool.QueueJob([=](uint32_t thread_index) {
-                for (uint32_t p = pixel_index_start; p < pixel_index_start + count; p++) {
-                    uint32_t y = p / WIDTH;
-                    uint32_t x = p - (y * WIDTH);
-
-                    Vec3f frag_screen_pos = top_left + (pixel_right * (float)x) + (pixel_down * (float)y);
-                    Vec3f ray_dir = frag_screen_pos - cam_pos;
-
-                    Ray ray(cam_pos, ray_dir);
-
-                    Vec3f value = shade(ray);
-
-                    pixels[p * 4 + 0] = static_cast<uint8_t>(value.x * 255.0f);
-                    pixels[p * 4 + 1] = static_cast<uint8_t>(value.y * 255.0f);
-                    pixels[p * 4 + 2] = static_cast<uint8_t>(value.z * 255.0f);
-                    pixels[p * 4 + 3] = 255;
-                }
-            });
-
-            pixel_index_start += count;
-            pixels_remaining -= count;
-        }
-
-        thread_pool.Wait();
+        renderer.RenderFrame(pixels, camera, objects);
     }
 
     Thirteen::Shutdown();
