@@ -2,7 +2,7 @@
 
 #include <float.h>
 #include <cmath>
-#include "rot_helpers.h"
+#include "math_utils.h"
 
 Camera::Camera(const Vec3f& position, float aspect_ratio, float focal_length, float viewport_height)
   : position(position),
@@ -18,7 +18,7 @@ void Camera::LookAt(const Vec3f& p) {
         delta = Vec3f::normalize(delta);
     }
 
-    rotation = rot_get_angles(delta);
+    rotation = Utils::get_angles(delta);
 }
 
 void Camera::MoveBy(const Vec3f& offset) {
@@ -30,13 +30,13 @@ void Camera::RotateBy(const Vec3f& offset) {
 }
 
 Vec3f Camera::get_forward() const {
-    return rot_get_forward(rotation.x, rotation.y);
+    return Utils::get_forward(rotation.x, rotation.y);
 }
 Vec3f Camera::get_right() const {
-    return rot_get_right(rotation.y);
+    return Utils::get_right(rotation.y);
 }
 Vec3f Camera::get_up() const {
-    return rot_get_up(rotation.x, rotation.y);
+    return Utils::get_up(rotation.x, rotation.y);
 }
 
 void Camera::set_aspect_ratio(float aspect_ratio) {
