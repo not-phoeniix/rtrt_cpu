@@ -2,18 +2,18 @@
 
 #include "vec3.h"
 #include "ray.h"
+#include "hittable.h"
 
-class Sphere {
+class Sphere : public Hittable {
    private:
     Vec3f center;
     float radius;
     Vec3f color;
-    float roughness;
 
    public:
-    Sphere(const Vec3f& center, float radius, const Vec3f& color, float roughness);
+    Sphere(const Vec3f& center, float radius, const Vec3f& color);
 
-    float CheckHit(const Ray& ray) const;
+    bool Hit(const Ray& ray, float ray_tmin, float ray_tmax, HitData* out_hit_data) const override;
 
     const Vec3f& get_color() const { return color; }
     const Vec3f& get_center() const { return center; }

@@ -7,7 +7,7 @@
 #include "camera.h"
 #include "ray.h"
 #include "sphere.h"
-#include <vector>
+#include "hittable_list.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -26,26 +26,11 @@ static Vec3f lerp(Vec3f a, Vec3f b, float x) {
     return (b * x) + (a * (1.0f - x));
 }
 
-static std::vector<Sphere> spheres = {
-    Sphere(
-        (Vec3f) {0, 0, 0},
-        1.0f,
-        (Vec3f) {1.0f, 0.25f, 0.25f},
-        1.0f
-    ),
-    // Sphere(
-    //     (Vec3f) {-3, 0, 0},
-    //     1.0f,
-    //     (Vec3f) {0.25f, 1.0f, 0.25f},
-    //     1.0f
-    // ),
-    // Sphere(
-    //     (Vec3f) {3, 0, 0},
-    //     1.0f,
-    //     (Vec3f) {0.25f, 0.25f, 1.0f},
-    //     1.0f
-    // )
-};
+static HittableList objects({
+    std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
+    std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
+    std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
+});
 
 static void update_camera(Camera& camera) {
     Vec3f pos_offset = {0, 0, 0};
@@ -76,16 +61,9 @@ static void update_camera(Camera& camera) {
 }
 
 static Vec3f shade(const Ray& ray) {
-    for (const Sphere& s : spheres) {
-        float x = s.CheckHit(ray);
-        if (x > 0.0f) {
-            Vec3f normal = Vec3f::normalize(ray.get_at(x) - s.get_center());
-            return normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
-        }
-
-        // if (s.Intersects(ray)) {
-        // return s.get_color();
-        // }
+    HitData hit_data;
+    if (objects.Hit(ray, 0.0, 10000.0f, &hit_data)) {
+        return hit_data.normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
     }
 
     Vec3f dir_norm = Vec3f::normalize(ray.get_direction());
