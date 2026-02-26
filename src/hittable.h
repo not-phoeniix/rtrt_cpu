@@ -2,6 +2,7 @@
 
 #include "ray.h"
 #include "vec3.h"
+#include "interval.h"
 
 struct HitData {
     Vec3f point;
@@ -15,5 +16,5 @@ void hit_data_set_face_normal(HitData* hit_data, const Ray& ray, const Vec3f& ou
 class Hittable {
    public:
     virtual ~Hittable() = default;
-    virtual bool Hit(const Ray& ray, float ray_tmin, float ray_tmax, HitData* out_hit) const = 0;
+    virtual bool Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit) const = 0;
 };

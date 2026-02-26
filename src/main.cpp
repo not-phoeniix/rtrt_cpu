@@ -64,7 +64,7 @@ static void update_camera(Camera& camera) {
 
 static Vec3f shade(const Ray& ray) {
     HitData hit_data;
-    if (objects.Hit(ray, 0.0, 10000.0f, &hit_data)) {
+    if (objects.Hit(ray, Interval(0, INFINITY_F), &hit_data)) {
         return hit_data.normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
     }
 

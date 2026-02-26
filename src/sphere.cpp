@@ -8,7 +8,7 @@ Sphere::Sphere(
     radius(std::fmaxf(radius, 0.0f)),
     color(color) { }
 
-bool Sphere::Hit(const Ray& ray, float ray_tmin, float ray_tmax, HitData* out_hit_data) const {
+bool Sphere::Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit_data) const {
     Vec3f oc = center - ray.get_origin();
     float a = ray.get_direction().get_length_sq();
     float h = Vec3f::dot(ray.get_direction(), oc);
@@ -23,9 +23,9 @@ bool Sphere::Hit(const Ray& ray, float ray_tmin, float ray_tmax, HitData* out_hi
 
     // find the nearest root that lies within acceptable range
     float root = (h - sqrt_d) / a;
-    if (root <= ray_tmin || root >= ray_tmax) {
+    if (!ray_t.Surrounds(root)) {
         root = (h + sqrt_d) / a;
-        if (root <= ray_tmin || root >= ray_tmax) {
+        if (!ray_t.Surrounds(root)) {
             return false;
         }
     }
