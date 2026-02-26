@@ -8,15 +8,16 @@
 #include "ray.h"
 #include "sphere.h"
 #include "hittable_list.h"
+#include "thread_pool.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 constexpr float CAM_SPEED = 2.0f;
 constexpr float CAM_LOOK_SPEED = 0.1f;
 
-// static float randf_range(float min, float max) {
-//     return min + ((max - min) * ((rand() / (float)RAND_MAX)));
-// }
+static float randf_range(float min, float max) {
+    return min + ((max - min) * ((rand() / (float)RAND_MAX)));
+}
 
 // static float lerp(float a, float b, float x) {
 //     return (b * x) + (a * (1.0f - x));
@@ -87,6 +88,8 @@ int main() {
         2.0f                   // viewport height
     );
 
+    ThreadPool thread_pool;
+
     while (Thirteen::Render() && !Thirteen::GetKey(VK_ESCAPE)) {
         update_camera(camera);
 
@@ -103,22 +106,41 @@ int main() {
         top_left += (pixel_right * 0.5f);
         top_left += (pixel_down * 0.5f);
 
-        for (uint32_t y = 0; y < HEIGHT; y++) {
-            for (uint32_t x = 0; x < WIDTH; x++) {
-                Vec3f frag_screen_pos = top_left + (pixel_right * (float)x) + (pixel_down * (float)y);
-                Vec3f ray_dir = frag_screen_pos - cam_pos;
+        // send shading in grouped-together batches
+        //   if we send them off all scattered then cache misses
+        //   will cause serious performance hits
 
-                Ray ray(cam_pos, ray_dir);
+        uint32_t pixel_index_start = 0;
+        uint32_t pixels_remaining = WIDTH * HEIGHT;
 
-                Vec3f value = shade(ray);
+        for (uint32_t i = 0; i < thread_pool.get_thread_count(); i++) {
+            uint32_t count = WIDTH * HEIGHT / thread_pool.get_thread_count();
+            if (count > pixels_remaining) count = pixels_remaining;
 
-                uint8_t* pixel = &pixels[(y * 4 * WIDTH) + (x * 4)];
-                pixel[0] = static_cast<uint8_t>(value.x * 255.0f);
-                pixel[1] = static_cast<uint8_t>(value.y * 255.0f);
-                pixel[2] = static_cast<uint8_t>(value.z * 255.0f);
-                pixel[3] = 255;
-            }
+            thread_pool.QueueJob([=](uint32_t thread_index) {
+                for (uint32_t p = pixel_index_start; p < pixel_index_start + count; p++) {
+                    uint32_t y = p / WIDTH;
+                    uint32_t x = p - (y * WIDTH);
+
+                    Vec3f frag_screen_pos = top_left + (pixel_right * (float)x) + (pixel_down * (float)y);
+                    Vec3f ray_dir = frag_screen_pos - cam_pos;
+
+                    Ray ray(cam_pos, ray_dir);
+
+                    Vec3f value = shade(ray);
+
+                    pixels[p * 4 + 0] = static_cast<uint8_t>(value.x * 255.0f);
+                    pixels[p * 4 + 1] = static_cast<uint8_t>(value.y * 255.0f);
+                    pixels[p * 4 + 2] = static_cast<uint8_t>(value.z * 255.0f);
+                    pixels[p * 4 + 3] = 255;
+                }
+            });
+
+            pixel_index_start += count;
+            pixels_remaining -= count;
         }
+
+        thread_pool.Wait();
     }
 
     Thirteen::Shutdown();
