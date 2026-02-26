@@ -5,8 +5,10 @@
 #include "vec2.h"
 #include <cstring>
 
-constexpr uint32_t SAMPLES_PER_PIXEL = 10;
+constexpr uint32_t SAMPLES_PER_PIXEL = 30;
 constexpr uint32_t SCANLINES_PER_FRAME = 4;
+constexpr uint32_t RAY_MAX_DEPTH = 50;
+constexpr float RAY_SURFACE_OFFSET = 0.001f;
 
 Renderer::Renderer(uint32_t width, uint32_t height, float low_res_scale)
   : full_width(width),
@@ -36,10 +38,21 @@ void Renderer::UpdateVectors(const Camera& camera, uint32_t width, uint32_t heig
     viewport_top_left += (pixel_down * 0.5f);
 }
 
-Vec3f Renderer::ShadePixel(const Ray& ray, const HittableList& objects) {
+Vec3f Renderer::ShadePixel(const Ray& ray, const HittableList& objects, uint32_t max_rays) {
+    if (max_rays == 0) {
+        return {0, 0, 0};
+    }
+
     HitData hit_data;
-    if (objects.Hit(ray, Interval(0, INFINITY_F), &hit_data)) {
-        return hit_data.normal * 0.5f + (Vec3f) {0.5f, 0.5f, 0.5f};
+    if (objects.Hit(ray, Interval(RAY_SURFACE_OFFSET, INFINITY_F), &hit_data)) {
+        Vec3f direction = hit_data.normal + Utils::get_rand_vec3_norm();
+
+        Vec3f shade_color = ShadePixel(
+            Ray(hit_data.point, direction),
+            objects,
+            max_rays - 1
+        );
+        return shade_color * 0.1f;
     }
 
     Vec3f dir_norm = Vec3f::normalize(ray.get_direction());
@@ -55,9 +68,13 @@ void Renderer::RenderBatch(uint32_t i_start, uint32_t count, const Vec3f& cam_po
         Vec3f color = {0.0f, 0.0f, 0.0f};
         for (uint32_t i = 0; i < SAMPLES_PER_PIXEL; i++) {
             Ray r = get_ray(x, y, cam_pos);
-            color += ShadePixel(r, objects);
+            color += ShadePixel(r, objects, RAY_MAX_DEPTH);
         }
         color /= (float)SAMPLES_PER_PIXEL;
+
+        color.x = Utils::correct_gamma(color.x);
+        color.y = Utils::correct_gamma(color.y);
+        color.z = Utils::correct_gamma(color.z);
 
         static const Interval intensity(0.0f, 1.0f);
         pixels[i * 4 + 0] = (uint8_t)(intensity.Clamp(color.x) * 255.0f);

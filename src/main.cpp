@@ -80,13 +80,13 @@ int main() {
     );
 
     HittableList objects({
-        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.1f, 0.1f, 0.1f}),
+        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.2f, 0.2f, 0.2f}),
         std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
         // std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
         // std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
     });
 
-    Renderer renderer(WIDTH, HEIGHT, 0.25f);
+    Renderer renderer(WIDTH, HEIGHT, 0.1f);
 
     while (Thirteen::Render() && !Thirteen::GetKey(VK_ESCAPE)) {
         bool something_moved = update_camera(camera);

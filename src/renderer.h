@@ -24,7 +24,7 @@ class Renderer {
     Vec3f pixel_down;
 
     void UpdateVectors(const Camera& camera, uint32_t width, uint32_t height);
-    Vec3f ShadePixel(const Ray& ray, const HittableList& objects);
+    Vec3f ShadePixel(const Ray& ray, const HittableList& objects, uint32_t max_depth);
     void RenderBatch(uint32_t i_start, uint32_t count, const Vec3f& cam_pos, uint8_t* pixels, uint32_t width, const HittableList& objects);
     void CopyPixelsBatch(uint32_t i_start, uint32_t count, uint8_t* out_pixels);
 

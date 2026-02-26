@@ -1,5 +1,8 @@
 #include "math_utils.h"
 
+#include <cmath>
+#include <float.h>
+
 constexpr uint32_t RAND_SEED = 829734215;
 
 Vec3f Utils::lerp(Vec3f a, Vec3f b, float x) {
@@ -23,6 +26,32 @@ float Utils::randf_range(float min, float max) {
     state = x;
 
     return min + ((max - min) * ((float)x / (float)UINT32_MAX));
+}
+
+Vec3f Utils::get_rand_vec3(float min, float max) {
+    return {
+        randf_range(min, max),
+        randf_range(min, max),
+        randf_range(min, max)
+    };
+}
+
+Vec3f Utils::get_rand_vec3_norm() {
+    while (true) {
+        Vec3f p = get_rand_vec3(-1, 1);
+        float len_sq = p.get_length_sq();
+        if (len_sq >= FLT_EPSILON && len_sq <= 1.0f) {
+            return p / std::sqrtf(len_sq);
+        }
+    }
+}
+
+Vec3f Utils::get_rand_vec3_on_hemisphere(const Vec3f& normal) {
+    // avoid branching to reduce CPU cache misses
+    Vec3f on_unit_sphere = get_rand_vec3_norm();
+    bool invert = Vec3f::dot(on_unit_sphere, normal) < 0.0f;
+    on_unit_sphere *= ((float)invert * -1.0f) + ((float)(!invert) * 1.0f);
+    return on_unit_sphere;
 }
 
 // equations grabbed from:
@@ -55,4 +84,12 @@ Vec3f Utils::get_angles(Vec3f forward) {
     float pitch = std::asin(-forward.y);
 
     return {pitch, yaw, 0};
+}
+
+float Utils::correct_gamma(float value) {
+    if (value > 0.0f) {
+        return std::sqrtf(value);
+    }
+
+    return 0.0f;
 }
