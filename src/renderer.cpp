@@ -45,14 +45,13 @@ Vec3f Renderer::ShadePixel(const Ray& ray, const HittableList& objects, uint32_t
 
     HitData hit_data;
     if (objects.Hit(ray, Interval(RAY_SURFACE_OFFSET, INFINITY_F), &hit_data)) {
-        Vec3f direction = hit_data.normal + Utils::get_rand_vec3_norm();
+        Ray scattered({0, 0, 0}, {0, 0, 0});
+        Vec3f attenuation;
+        if (hit_data.material->Scatter(ray, hit_data, &attenuation, &scattered)) {
+            return attenuation * ShadePixel(scattered, objects, max_rays - 1);
+        }
 
-        Vec3f shade_color = ShadePixel(
-            Ray(hit_data.point, direction),
-            objects,
-            max_rays - 1
-        );
-        return shade_color * 0.1f;
+        return {0, 0, 0};
     }
 
     Vec3f dir_norm = Vec3f::normalize(ray.get_direction());

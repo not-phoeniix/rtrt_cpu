@@ -3,10 +3,10 @@
 Sphere::Sphere(
     const Vec3f& center,
     float radius,
-    const Vec3f& color
+    std::shared_ptr<Material> material
 ) : center(center),
     radius(std::fmaxf(radius, 0.0f)),
-    color(color) { }
+    material(material) { }
 
 bool Sphere::Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit_data) const {
     Vec3f oc = center - ray.get_origin();
@@ -32,6 +32,7 @@ bool Sphere::Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit_data) c
 
     out_hit_data->t = root;
     out_hit_data->point = ray.get_at(root);
+    out_hit_data->material = material;
     Vec3f outward_normal = (out_hit_data->point - center) / radius;
     hit_data_set_face_normal(out_hit_data, ray, outward_normal);
 

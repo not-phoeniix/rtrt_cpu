@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ray.h"
-#include "hittable.h"
+#include "../ray.h"
+#include "../objects/hittable.h"
 
 class Material {
+   public:
     virtual ~Material() = default;
 
     virtual bool Scatter(

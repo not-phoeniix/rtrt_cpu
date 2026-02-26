@@ -2,12 +2,14 @@
 #include "thirteen.h"
 #include <stdint.h>
 #include "vec3.h"
-#include "vec2.h"
 #include "camera.h"
 #include "ray.h"
 #include "objects/sphere.h"
 #include "objects/hittable_list.h"
 #include "renderer.h"
+#include "materials/metal.h"
+#include "materials/lambertian.h"
+#include <memory>
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -79,11 +81,16 @@ int main() {
         2.0f                   // viewport height
     );
 
+    auto mat_ground = std::make_shared<Lambertian>((Vec3f) {0.8f, 0.8f, 0});
+    auto mat_lamb1 = std::make_shared<Lambertian>((Vec3f) {1.0f, 0.25f, 0.25f});
+    auto mat_metal1 = std::make_shared<Metal>((Vec3f) {0.8f, 0.8f, 0.8f}, 0.9f);
+    auto mat_metal2 = std::make_shared<Metal>((Vec3f) {0.2f, 0.8f, 0.8f}, 0.3f);
+
     HittableList objects({
-        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.2f, 0.2f, 0.2f}),
-        std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
-        // std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
-        // std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
+        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, mat_ground),
+        std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, mat_lamb1),
+        std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, mat_metal1),
+        std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, mat_metal2),
     });
 
     Renderer renderer(WIDTH, HEIGHT, 0.1f);

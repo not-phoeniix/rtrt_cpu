@@ -1,5 +1,6 @@
 #pragma once
 
+#include "materials/material.h"
 #include "thread_pool.h"
 #include <stdint.h>
 #include "ray.h"

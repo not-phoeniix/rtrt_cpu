@@ -55,10 +55,14 @@ struct Vec3 {
 
     T get_length() const;
     T get_length_sq() const;
+    bool get_near_zero();
 
     static T dot(const Vec3<T>& a, const Vec3<T>& b);
     static Vec3<T> cross(const Vec3<T>& a, const Vec3<T>& b);
     static Vec3<T> normalize(const Vec3<T>& v);
+    static Vec3<T> reflect(const Vec3<T>& v, const Vec3<T>& n) {
+        return v - (n * 2.0f * dot(v, n));
+    }
 };
 
 template <typename T>
@@ -139,6 +143,16 @@ DEF_VEC3_CROSS(double)
 
 DEF_VEC3_NORM(float)
 DEF_VEC3_NORM(double)
+
+#define DEF_VEC3_NEARZERO(T, min, comp_func)                                   \
+    template <>                                                                \
+    inline bool Vec3<T>::get_near_zero() {                                     \
+        static const T s = min;                                                \
+        return (comp_func(x) < s) && (comp_func(y) < s) && (comp_func(z) < s); \
+    }
+
+DEF_VEC3_NEARZERO(float, 1e-8f, std::fabsf)
+DEF_VEC3_NEARZERO(double, 1e-8, std::fabs)
 
 using Vec3f = Vec3<float>;
 using Vec3d = Vec3<double>;
