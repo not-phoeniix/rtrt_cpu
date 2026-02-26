@@ -1,7 +1,6 @@
 #include <iostream>
 #include "thirteen.h"
 #include <stdint.h>
-#include <stdlib.h>
 #include "vec3.h"
 #include "vec2.h"
 #include "camera.h"
@@ -10,11 +9,10 @@
 #include "hittable_list.h"
 #include "renderer.h"
 
-constexpr uint32_t WIDTH = 800;
-constexpr uint32_t HEIGHT = 600;
+constexpr uint32_t WIDTH = 400;
+constexpr uint32_t HEIGHT = 300;
 constexpr float CAM_SPEED = 2.0f;
 constexpr float CAM_LOOK_SPEED = 0.1f;
-constexpr uint32_t SAMPLES_PER_PIXEL = 10;
 
 static void update_camera(Camera& camera) {
     Vec3f pos_offset = {0, 0, 0};
@@ -45,8 +43,6 @@ static void update_camera(Camera& camera) {
 }
 
 int main() {
-    srand((unsigned int)time(NULL));
-
     uint8_t* pixels = Thirteen::Init(WIDTH, HEIGHT);
     if (pixels == nullptr) {
         return 1;

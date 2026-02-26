@@ -20,6 +20,8 @@ class Renderer {
     Vec3f ShadePixel(const Ray& ray, const HittableList& objects);
     void RenderBatch(uint32_t i_start, uint32_t count, const Vec3f& cam_pos, uint8_t* pixels, const HittableList& objects);
 
+    Ray get_ray(uint32_t x, uint32_t y, const Vec3f& cam_pos) const;
+
    public:
     Renderer(uint32_t width, uint32_t height);
 

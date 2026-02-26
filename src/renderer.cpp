@@ -2,6 +2,9 @@
 
 #include "math_utils.h"
 #include "interval.h"
+#include "vec2.h"
+
+constexpr uint32_t SAMPLES_PER_PIXEL = 10;
 
 Renderer::Renderer(uint32_t width, uint32_t height)
   : width(width),
@@ -24,19 +27,33 @@ void Renderer::RenderBatch(uint32_t i_start, uint32_t count, const Vec3f& cam_po
         uint32_t y = i / width;
         uint32_t x = i - (y * width);
 
-        Vec3f frag_screen_pos = viewport_top_left + (pixel_right * (float)x) + (pixel_down * (float)y);
-        Vec3f ray_dir = frag_screen_pos - cam_pos;
-
-        Ray ray(cam_pos, ray_dir);
-
-        Vec3f value = ShadePixel(ray, objects);
+        Vec3f color = {0.0f, 0.0f, 0.0f};
+        for (uint32_t i = 0; i < SAMPLES_PER_PIXEL; i++) {
+            Ray r = get_ray(x, y, cam_pos);
+            color += ShadePixel(r, objects);
+        }
+        color /= (float)SAMPLES_PER_PIXEL;
 
         static const Interval intensity(0.0f, 1.0f);
-        pixels[i * 4 + 0] = (uint8_t)(intensity.Clamp(value.x) * 255.0f);
-        pixels[i * 4 + 1] = (uint8_t)(intensity.Clamp(value.y) * 255.0f);
-        pixels[i * 4 + 2] = (uint8_t)(intensity.Clamp(value.z) * 255.0f);
+        pixels[i * 4 + 0] = (uint8_t)(intensity.Clamp(color.x) * 255.0f);
+        pixels[i * 4 + 1] = (uint8_t)(intensity.Clamp(color.y) * 255.0f);
+        pixels[i * 4 + 2] = (uint8_t)(intensity.Clamp(color.z) * 255.0f);
         pixels[i * 4 + 3] = 255;
     }
+}
+
+Ray Renderer::get_ray(uint32_t x, uint32_t y, const Vec3f& cam_pos) const {
+    Vec2f rand_offset = {
+        Utils::randf_range(-0.5f, 0.5f),
+        Utils::randf_range(-0.5f, 0.5f)
+    };
+
+    Vec3f frag_screen_pos = viewport_top_left +
+                            (pixel_right * (x + rand_offset.x)) +
+                            (pixel_down * (y + rand_offset.y));
+    Vec3f ray_dir = frag_screen_pos - cam_pos;
+
+    return Ray(cam_pos, ray_dir);
 }
 
 void Renderer::RenderFrame(uint8_t* pixels, const Camera& camera, const HittableList& objects) {
@@ -64,9 +81,11 @@ void Renderer::RenderFrame(uint8_t* pixels, const Camera& camera, const Hittable
         uint32_t count = width * height / thread_pool.get_thread_count();
         if (count > pixels_remaining) count = pixels_remaining;
 
-        thread_pool.QueueJob([=](uint32_t thread_index) {
-            RenderBatch(pixel_index_start, count, cam_pos, pixels, objects);
-        });
+        thread_pool.QueueJob(
+            [this, pixel_index_start, count, &cam_pos, pixels, &objects](uint32_t thread_index) {
+                RenderBatch(pixel_index_start, count, cam_pos, pixels, objects);
+            }
+        );
 
         pixel_index_start += count;
         pixels_remaining -= count;
