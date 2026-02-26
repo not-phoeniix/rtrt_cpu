@@ -17,7 +17,7 @@ bool HittableList::Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit) 
     float t_closest = ray_t.get_max();
 
     for (const auto& object : objects) {
-        if (object->Hit(ray, ray_t, &tmp_data)) {
+        if (object->Hit(ray, Interval(ray_t.get_min(), t_closest), &tmp_data)) {
             hit_anything = true;
             t_closest = tmp_data.t;
             *out_hit = tmp_data;
