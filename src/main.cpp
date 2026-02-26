@@ -27,9 +27,10 @@ static Vec3f lerp(Vec3f a, Vec3f b, float x) {
 }
 
 static HittableList objects({
+    std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, (Vec3f) {0.1f, 0.1f, 0.1f}),
     std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, (Vec3f) {1.0f, 0.25f, 0.25f}),
-    std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
-    std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
+    // std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, (Vec3f) {0.25f, 1.0f, 0.25f}),
+    // std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, (Vec3f) {0.25f, 0.25f, 1.0f}),
 });
 
 static void update_camera(Camera& camera) {
