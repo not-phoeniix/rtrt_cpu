@@ -151,10 +151,13 @@ inline Vec3<T> operator/(const Vec3<T>& a, T scale) {
 
 DEFINE_VEC3(float, std::sqrtf, std::fabsf, 1e-8f)
 DEFINE_VEC3(double, std::sqrt, std::fabs, 1e-8)
+DEFINE_VEC3(long double, std::sqrtl, std::fabsl, 1e-8)
 
 // ~~~ type defines themselves ~~~
 
+typedef Vec3<bool> Vec3b;
 typedef Vec3<float> Vec3f;
 typedef Vec3<double> Vec3d;
+typedef Vec3<long double> Vec3l;
 typedef Vec3<int32_t> Vec3i;
 typedef Vec3<uint32_t> Vec3u;
