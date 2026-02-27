@@ -8,7 +8,7 @@ class Ray {
     Vec3f direction;
 
    public:
-    Ray(const Vec3f& origin, const Vec3f direction);
+    Ray(const Vec3f& origin, const Vec3f& direction);
 
     Vec3f get_at(float t) const;
     const Vec3f& get_origin() const;
