@@ -16,6 +16,9 @@ constexpr uint32_t HEIGHT = 600;
 constexpr float CAM_SPEED = 3.0f;
 constexpr float CAM_LOOK_SPEED = 0.01f;
 
+// TODO: next is dialectrics (chapter 11)
+//   https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics
+
 // returns whether or not something has moved this frame
 static bool update_camera(Camera& camera) {
     bool something_moved = false;
@@ -83,16 +86,16 @@ int main() {
         2.0f                   // viewport height
     );
 
-    auto mat_ground = std::make_shared<Lambertian>((Vec3f) {0.8f, 0.8f, 0});
-    auto mat_lamb1 = std::make_shared<Lambertian>((Vec3f) {1.0f, 0.25f, 0.25f});
-    auto mat_metal1 = std::make_shared<Metal>((Vec3f) {0.8f, 0.8f, 0.8f}, 0.9f);
-    auto mat_metal2 = std::make_shared<Metal>((Vec3f) {0.2f, 0.8f, 0.8f}, 0.3f);
+    auto mat_ground = std::make_shared<Lambertian>(Vec3f(0.8f, 0.8f, 0));
+    auto mat_lamb1 = std::make_shared<Lambertian>(Vec3f(1.0f, 0.25f, 0.25f));
+    auto mat_metal1 = std::make_shared<Metal>(Vec3f(0.8f, 0.8f, 0.8f), 0.9f);
+    auto mat_metal2 = std::make_shared<Metal>(Vec3f(0.2f, 0.8f, 0.8f), 0.3f);
 
     HittableList objects({
-        std::make_shared<Sphere>((Vec3f) {0, -1001, 0}, 1000.0f, mat_ground),
-        std::make_shared<Sphere>((Vec3f) {0, 0, 0}, 1.0f, mat_lamb1),
-        std::make_shared<Sphere>((Vec3f) {-3, 0, 0}, 1.0f, mat_metal1),
-        std::make_shared<Sphere>((Vec3f) {3, 0, 0}, 1.0f, mat_metal2),
+        std::make_shared<Sphere>(Vec3f(0, -1001, 0), 1000.0f, mat_ground),
+        std::make_shared<Sphere>(Vec3f(0, 0, 0), 1.0f, mat_lamb1),
+        std::make_shared<Sphere>(Vec3f(-3, 0, 0), 1.0f, mat_metal1),
+        std::make_shared<Sphere>(Vec3f(3, 0, 0), 1.0f, mat_metal2),
     });
 
     Renderer renderer(WIDTH, HEIGHT, 0.1f);

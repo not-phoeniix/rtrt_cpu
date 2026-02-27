@@ -39,7 +39,7 @@ Vec3f Utils::get_rand_vec3(float min, float max) {
 Vec3f Utils::get_rand_vec3_norm() {
     while (true) {
         Vec3f p = get_rand_vec3(-1, 1);
-        float len_sq = p.get_length_sq();
+        float len_sq = Vec3f::length_sq(p);
         if (len_sq >= FLT_EPSILON && len_sq <= 1.0f) {
             return p / std::sqrtf(len_sq);
         }

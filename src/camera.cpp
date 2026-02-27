@@ -14,7 +14,7 @@ Camera::Camera(const Vec3f& position, float aspect_ratio, float focal_length, fl
 
 void Camera::LookAt(const Vec3f& p) {
     Vec3f delta = p - position;
-    if (delta.get_length_sq() > FLT_EPSILON) {
+    if (Vec3f::length_sq(delta) > FLT_EPSILON) {
         delta = Vec3f::normalize(delta);
     }
 

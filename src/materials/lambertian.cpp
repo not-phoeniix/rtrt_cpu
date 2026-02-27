@@ -12,7 +12,7 @@ bool Lambertian::Scatter(
     Ray* out_scattered
 ) const {
     Vec3f scatter_dir = hit_data.normal + Utils::get_rand_vec3_norm();
-    if (scatter_dir.get_near_zero()) {
+    if (Vec3f::near_zero(scatter_dir)) {
         scatter_dir = hit_data.normal;
     }
 

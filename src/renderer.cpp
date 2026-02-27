@@ -2,7 +2,6 @@
 
 #include "math_utils.h"
 #include "interval.h"
-#include "vec2.h"
 #include <cstring>
 
 constexpr uint32_t SAMPLES_PER_PIXEL = 30;
@@ -102,14 +101,12 @@ void Renderer::CopyPixelsBatch(uint32_t i_start, uint32_t count, uint8_t* out_pi
 }
 
 Ray Renderer::get_ray(uint32_t x, uint32_t y, const Vec3f& cam_pos) const {
-    Vec2f rand_offset = {
-        Utils::randf_range(-0.5f, 0.5f),
-        Utils::randf_range(-0.5f, 0.5f)
-    };
+    float x_offset = Utils::randf_range(-0.5f, 0.5f);
+    float y_offset = Utils::randf_range(-0.5f, 0.5f);
 
     Vec3f frag_screen_pos = viewport_top_left +
-                            (pixel_right * (x + rand_offset.x)) +
-                            (pixel_down * (y + rand_offset.y));
+                            (pixel_right * (x + x_offset)) +
+                            (pixel_down * (y + y_offset));
     Vec3f ray_dir = frag_screen_pos - cam_pos;
 
     return Ray(cam_pos, ray_dir);

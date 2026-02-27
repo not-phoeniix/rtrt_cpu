@@ -10,9 +10,9 @@ Sphere::Sphere(
 
 bool Sphere::Hit(const Ray& ray, const Interval& ray_t, HitData* out_hit_data) const {
     Vec3f oc = center - ray.get_origin();
-    float a = ray.get_direction().get_length_sq();
+    float a = Vec3f::length_sq(ray.get_direction());
     float h = Vec3f::dot(ray.get_direction(), oc);
-    float c = oc.get_length_sq() - radius * radius;
+    float c = Vec3f::length_sq(oc) - radius * radius;
 
     float descriminant = h * h - a * c;
     if (descriminant < 0) {
