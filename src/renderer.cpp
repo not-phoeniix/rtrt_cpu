@@ -17,6 +17,7 @@ Renderer::Renderer(uint32_t width, uint32_t height, float low_res_scale)
     low_res_height((uint32_t)(height * low_res_scale)),
     low_res_scale(low_res_scale),
     low_res(false),
+    scanline(0),
     thread_pool() {
     low_res_pixels = new uint8_t[low_res_width * low_res_height * 4];
 }
@@ -174,8 +175,6 @@ void Renderer::RenderFullRes(uint8_t* pixels, const Camera& camera, const Hittab
     // send shading in grouped-together batches
     //   if we send them off all scattered then cache misses
     //   will cause serious performance hits
-
-    static uint32_t scanline = 0;
 
     uint32_t pixel_index_start = scanline * full_width;
     uint32_t pixels_remaining = full_width * SCANLINES_PER_FRAME;

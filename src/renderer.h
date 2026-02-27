@@ -17,6 +17,7 @@ class Renderer {
     uint8_t* low_res_pixels;
     float low_res_scale;
     bool low_res;
+    uint32_t scanline;
     ThreadPool thread_pool;
     Vec3f viewport_top_left;
     Vec3f viewport_right;
@@ -38,7 +39,14 @@ class Renderer {
     Renderer(uint32_t width, uint32_t height, float low_res_scale);
     ~Renderer();
 
-    void set_low_res(bool low_res) { this->low_res = low_res; }
+    void set_low_res(bool low_res) {
+        // reset scanline when changing resolutions
+        if (this->low_res != low_res) {
+            scanline = 0;
+        }
+
+        this->low_res = low_res;
+    }
 
     void RenderFrame(uint8_t* pixels, const Camera& camera, const HittableList& objects);
 };
